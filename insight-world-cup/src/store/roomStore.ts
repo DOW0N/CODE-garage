@@ -15,6 +15,7 @@ interface RoomState {
 }
 
 let channel: RealtimeChannel | null = null
+let signIn: Promise<string> | null = null // 로그인을 한 번만 하도록 기억해 둔다
 
 export const useRoomStore = create<RoomState>((set, get) => {
   // 서버에서 방과 플레이어 목록을 다시 읽는다
@@ -35,6 +36,7 @@ export const useRoomStore = create<RoomState>((set, get) => {
       .on('postgres_changes', { event: '*', schema: 'public', table: 'room_players', filter: `room_id=eq.${roomId}` }, () => refresh(roomId))
       .subscribe()
     await refresh(roomId)
+    return get().room ? null : '방 정보를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.'
   }
 
   return {
@@ -43,25 +45,26 @@ export const useRoomStore = create<RoomState>((set, get) => {
     players: [],
 
     init: async () => {
-      const { data } = await supabase.auth.getSession()
-      if (data.session) return set({ userId: data.session.user.id })
-      const { data: signIn, error } = await supabase.auth.signInAnonymously()
-      if (error) throw error
-      set({ userId: signIn.user!.id })
+      signIn ??= (async () => {
+        const { data } = await supabase.auth.getSession()
+        if (data.session) return data.session.user.id
+        const { data: anon, error } = await supabase.auth.signInAnonymously()
+        if (error) throw error
+        return anon.user!.id
+      })()
+      set({ userId: await signIn })
     },
 
     createRoom: async () => {
       const { data, error } = await supabase.rpc('create_room')
       if (error) return error.message
-      await enter((data as Room).id)
-      return null
+      return enter((data as Room).id)
     },
 
     joinRoom: async (code, nickname) => {
       const { data, error } = await supabase.rpc('join_room', { p_code: code, p_nickname: nickname })
       if (error) return error.message
-      await enter(data as string)
-      return null
+      return enter(data as string)
     },
 
     leaveRoom: async () => {
