@@ -10,7 +10,9 @@ export default function Chat() {
   const [error, setError] = useState<string | null>(null)
   const bottom = useRef<HTMLDivElement>(null)
 
-  useEffect(() => bottom.current?.scrollIntoView({ block: 'nearest' }), [messages.length])
+  useEffect(() => {
+    bottom.current?.scrollIntoView({ block: 'nearest' })
+  }, [messages.length])
 
   if (!room) return null
   // 귓속말 상대: 게임마스터 + 다른 플레이어 (나는 빼고)
