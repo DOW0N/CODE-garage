@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import Chat from '../components/Chat'
 import { useRoomStore } from '../store/roomStore'
 import { MAX_PLAYERS, MIN_PLAYERS } from '../types/player'
 
@@ -47,6 +48,8 @@ export default function Lobby() {
       )}
 
       {error && <p className="text-red-600">{error}</p>}
+
+      <Chat />
     </div>
   )
 }

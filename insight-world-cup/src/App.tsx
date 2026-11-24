@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import Chat from './components/Chat'
 import Home from './pages/Home'
 import Lobby from './pages/Lobby'
 import { useRoomStore } from './store/roomStore'
@@ -19,5 +20,10 @@ export default function App() {
   if (!room) return <Home />
   if (room.phase === 'lobby') return <Lobby />
   // 경기 화면은 4단계(라운드·스코어 서버 진행)에서 연결한다
-  return <p className="p-4 text-xl font-bold">게임이 시작되었습니다!</p>
+  return (
+    <div className="p-4 max-w-md mx-auto space-y-4">
+      <p className="text-xl font-bold">게임이 시작되었습니다!</p>
+      <Chat />
+    </div>
+  )
 }
